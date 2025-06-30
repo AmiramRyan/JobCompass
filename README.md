@@ -16,7 +16,7 @@ JobCompass is a job search and application tracker that helps users to organize,
 
 - **Frontend**: React, Bootstrap
 - **Backend**: Node.js, Express
-- **Database**: MongoDB (or other)
+- **Database**: MongoDB
 
 ## API Endpoints
 
