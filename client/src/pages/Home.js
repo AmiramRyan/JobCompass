@@ -12,6 +12,9 @@ export default function Home() {
         <Link to="/dashboard" className="btn btn-primary btn-lg">
           Go to Dashboard
         </Link>
+        <Link to="/login" className="btn btn-secondary btn-lg ms-3">
+          Login
+        </Link>
       </div>
     </div>
   );

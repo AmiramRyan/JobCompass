@@ -24,15 +24,18 @@ function Dashboard() {
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
 
-    const filteredData = allJobs.filter((job) => {
-      const titleMatch = job.title.toLowerCase().includes(newFilters.title.toLowerCase());
-      const companyMatch = job.company.toLowerCase().includes(newFilters.company.toLowerCase());
-      const statusMatch = newFilters.status === 'all' || job.status === newFilters.status;
-      
-      return titleMatch && companyMatch && statusMatch;
+    const filteredJobs = allJobs.filter(job => {
+      const matchesStatus =
+        newFilters.status.length === 0 || newFilters.status.includes(job.status);
+
+      return (
+        (newFilters.title === '' || job.title.toLowerCase().includes(newFilters.title.toLowerCase())) &&
+        (newFilters.company === '' || job.company.toLowerCase().includes(newFilters.company.toLowerCase())) &&
+        matchesStatus
+      );
     });
 
-    setFilteredJobs(filteredData);
+    setFilteredJobs(filteredJobs);
   };
 
   return (
