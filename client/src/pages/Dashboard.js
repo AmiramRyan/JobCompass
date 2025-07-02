@@ -20,8 +20,11 @@ function Dashboard() {
         const res = await fetch('/jobs');
         if(!res.ok) throw new Error('Failed to retrieve jobs list')
         const jobs = await res.json();
-        setAllJobs(jobs);
-        setFilteredJobs(jobs);
+
+        //Normalize
+        const nJobs = jobs.map(job => ({...job, id: job._id}))
+        setAllJobs(nJobs);
+        setFilteredJobs(nJobs);
       } catch (e) {
         console.error(e);
       }
@@ -47,6 +50,21 @@ function Dashboard() {
 
     setFilteredJobs(filteredJobs);
   };
+
+  const handelDelete = async (jobId) => {
+    try{
+      const res = await fetch(`/jobs/${jobId}`, {
+        method: 'DELETE',
+      });
+      if(!res.ok) throw new Error(`Failed to delete job: ${jobId}`)
+      //Update the full job list and the one currently in view
+      setAllJobs(oldJobArr =>  oldJobArr.filter(job => job.id !== jobId))
+      setFilteredJobs(oldJobArr => oldJobArr.filter(job => job.id !== jobId)) 
+    } catch (e){
+      console.error(e);
+      alert('Job failed to delete');
+    }
+  }
 
   return (
     <div className="container mt-5">
@@ -115,7 +133,7 @@ function Dashboard() {
         <div className="row g-4">
           {filteredJobs.map((job) => (
             <div key={job.id} className="col-md-4">
-              <JobCard job={job} />
+              <JobCard job={job} onDelete={handelDelete}/>
             </div>
           ))}
         </div>

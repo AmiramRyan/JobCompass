@@ -33,6 +33,8 @@ const JobForm = () => {
       
       if(!res.ok) throw new Error('Failed to submit');
       const newJob = await res.json();
+      //Normalize ID
+      newJob.id = newJob._id;
       console.log('Job Created', newJob);
       
       navigate('/dashboard');

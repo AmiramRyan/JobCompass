@@ -3,14 +3,14 @@ import { Card, Badge } from "react-bootstrap";
 import { Briefcase, Calendar, MapPin } from 'react-feather';
 
 const statusColors = {
-  Applied: "primary",
+  applied: "primary",
   interviewing: "warning",
   accepted: "success",
   rejected: "danger",
   ghosted: "secondary",
 };
 
-const JobCard = ({ job }) => {
+const JobCard = ({ job, onDelete }) => {
     const { title, company, status, appliedDate } = job;
 
     return (
@@ -33,6 +33,7 @@ const JobCard = ({ job }) => {
         <div className="mt-2 text-muted">
           <Calendar size={14} className="me-1" />
           Applied: {new Date(appliedDate).toLocaleDateString()}
+          <button className="btn btn-danger btn-sm ms-3" onClick={() => onDelete(job.id)}>Delete</button>
         </div>
       </Card.Body>
     </Card>

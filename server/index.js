@@ -76,7 +76,7 @@ app.put('/jobs/:id', async (req, res) => {
     }, { new: true });
     if(!job) {
       return res.status(404).json({ message: 'Job not found' });
-    }
+    }                                  
     res.status(200).json(job);
   } catch (error) {
     console.error('Error updating job:', error);
