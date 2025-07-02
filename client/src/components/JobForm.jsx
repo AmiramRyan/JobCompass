@@ -2,26 +2,47 @@ import React, { useState } from 'react';
 import { Form, Button, Container } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
+const today = () =>{
+  const date = new Date();
+  const dateStr = date.toISOString().split('T')[0];
+  return dateStr;
+}
 const JobForm = () => {
   const [formData, setFormData] = useState({
     title: '',
     company: '',
-    status: 'applied',
-    notes: ''
+    status: 'Applied',
+    notes: '',
+    appliedDate: today()
   });
-
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-
-  const handleSubmit = (e) => {
+  
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitted:", formData);
-    // TODO: send data to backend
+    
+    try{
+      const res = await fetch('/jobs', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(formData)
+      });
+      
+      if(!res.ok) throw new Error('Failed to submit');
+      const newJob = await res.json();
+      console.log('Job Created', newJob);
+      
+      navigate('/dashboard');
+    } catch (err) {
+      console.error(err);
+      alert('Job creation failed');
+    }
   };
   const navigate = useNavigate();
-
+  
   return (
     <Container className="mt-5">
       <h2>Add New Job Application</h2>
@@ -38,12 +59,12 @@ const JobForm = () => {
 
         <Form.Group className="mb-3">
           <Form.Label>Status</Form.Label>
-          <Form.Select name="status" value={formData.status} onChange={handleChange} defaultValue={'applied'}>
-            <option value="applied">Applied</option>
-            <option value="interviewing">Interviewing</option>
-            <option value="accepted">Accepted</option>
-            <option value="rejected">Rejected</option>
-            <option value="ghosted">Ghosted</option>
+          <Form.Select name="status" value={formData.status} onChange={handleChange}>
+            <option value="Applied">Applied</option>
+            <option value="Interviewing">Interviewing</option>
+            <option value="Accepted">Accepted</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Ghosted">Ghosted</option>
           </Form.Select>
         </Form.Group>
 
@@ -52,6 +73,10 @@ const JobForm = () => {
           <Form.Control as="textarea" name="notes" rows={3} value={formData.notes} onChange={handleChange} />
         </Form.Group>
 
+        <Form.Group className="mb-3">
+          <Form.Label>Applied Date</Form.Label>
+          <Form.Control type='date' name="appliedDate" value={formData.appliedDate} onChange={handleChange}/>
+        </Form.Group>
         <Button type="submit" variant="primary">Submit</Button>
         <Button variant="secondary" onClick={() => navigate(-1)}>
           ← Back

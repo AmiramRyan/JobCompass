@@ -1,16 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import JobCard from '../components/JobCard';
 import FilterBar from '../components/FilterBar';
-
-//TODO: Get from API
-const allJobs = [
-  { id: 1, title: "Frontend Developer", company: "Acme Corp", status: "applied", appliedDate: "2025-06-15" },
-  { id: 2, title: "Backend Developer", company: "TechInc", status: "interviewing", appliedDate: "2025-06-12" },
-  { id: 3, title: "UI/UX Designer", company: "Designify", status: "rejected", appliedDate: "2025-06-10" },
-  { id: 4, title: "DevOps Engineer", company: "CloudCo", status: "ghosted", appliedDate: "2025-06-05" },
-  { id: 5, title: "Software Engineer", company: "StartupX", status: "applied", appliedDate: "2025-06-20" }
-];
 
 function Dashboard() {
   const [filters, setFilters] = useState({
@@ -19,7 +10,26 @@ function Dashboard() {
     status: 'all'
   });
 
+  //States
+  const [allJobs, setAllJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState(allJobs);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try{
+        const res = await fetch('/jobs');
+        if(!res.ok) throw new Error('Failed to retrieve jobs list')
+        const jobs = await res.json();
+        setAllJobs(jobs);
+        setFilteredJobs(jobs);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    fetchJobs();
+
+  }, []);
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
@@ -96,7 +106,7 @@ function Dashboard() {
       {/* FilterBar*/}
       <FilterBar onFilterChange={handleFilterChange} />
 
-      {/*Filtered job results*/}
+      {/*Filtered job res*/}
       {filteredJobs.length === 0 ? (
         <div className="alert alert-warning text-center">
           No jobs found with the selected filters.
@@ -111,7 +121,7 @@ function Dashboard() {
         </div>
       )}
 
-      {/*New Application Btn*/}
+      {/*New Job Btn*/}
       <div className="text-center mt-5">
         <Link to="/add-job" className="btn btn-outline-primary btn-lg">
           <i className="bi bi-plus-circle me-2"></i>Add New Application

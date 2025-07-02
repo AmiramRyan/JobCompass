@@ -3,11 +3,11 @@ import { Form, Button } from 'react-bootstrap';
 import Select from 'react-select';
 
 const statusOptions = [
-  { value: 'applied', label: 'Applied' },
-  { value: 'interviewing', label: 'Interviewing' },
-  { value: 'accepted', label: 'Accepted' },
-  { value: 'rejected', label: 'Rejected' },
-  { value: 'ghosted', label: 'Ghosted' }
+  { value: 'Applied', label: 'Applied' },
+  { value: 'Interviewing', label: 'Interviewing' },
+  { value: 'Accepted', label: 'Accepted' },
+  { value: 'Rejected', label: 'Rejected' },
+  { value: 'Ghosted', label: 'Ghosted' }
 ];
 
 const FilterBar = ({ onFilterChange }) => {
