@@ -10,7 +10,7 @@ const statusColors = {
   ghosted: "secondary",
 };
 
-const JobCard = ({ job, onDelete }) => {
+const JobCard = ({ job, onDelete, onUpdate }) => {
     const { title, company, status, appliedDate } = job;
 
     return (
@@ -34,6 +34,7 @@ const JobCard = ({ job, onDelete }) => {
           <Calendar size={14} className="me-1" />
           Applied: {new Date(appliedDate).toLocaleDateString()}
           <button className="btn btn-danger btn-sm ms-3" onClick={() => onDelete(job.id)}>Delete</button>
+          <button className="btn btn-danger btn-sm ms-3" onClick={() => onUpdate(job)}>Edit</button>
         </div>
       </Card.Body>
     </Card>

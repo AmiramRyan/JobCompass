@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Button, Container } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
@@ -7,7 +7,8 @@ const today = () =>{
   const dateStr = date.toISOString().split('T')[0];
   return dateStr;
 }
-const JobForm = () => {
+
+const JobForm = ({ initialData = null, onSubmit, onCancel,  isEditing = false}) => {
   const [formData, setFormData] = useState({
     title: '',
     company: '',
@@ -15,36 +16,29 @@ const JobForm = () => {
     notes: '',
     appliedDate: today()
   });
-  
+
+  useEffect (() => {
+    if(initialData) {
+      setFormData({
+        title: initialData.title || '',
+        company: initialData.company || '',
+        status: initialData.status || '',
+        notes: initialData.notes || '',
+        appliedDate: initialData.appliedDate || today()
+      });
+    }
+  }, [initialData]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    try{
-      const res = await fetch('/jobs', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(formData)
-      });
-      
-      if(!res.ok) throw new Error('Failed to submit');
-      const newJob = await res.json();
-      //Normalize ID
-      newJob.id = newJob._id;
-      console.log('Job Created', newJob);
-      
-      navigate('/dashboard');
-    } catch (err) {
-      console.error(err);
-      alert('Job creation failed');
-    }
-  };
-  const navigate = useNavigate();
-  
+  const handleSubmit = (e) => {
+      e.preventDefault();
+      onSubmit(formData);
+    };
+
   return (
     <Container className="mt-5">
       <h2>Add New Job Application</h2>
@@ -79,8 +73,8 @@ const JobForm = () => {
           <Form.Label>Applied Date</Form.Label>
           <Form.Control type='date' name="appliedDate" value={formData.appliedDate} onChange={handleChange}/>
         </Form.Group>
-        <Button type="submit" variant="primary">Submit</Button>
-        <Button variant="secondary" onClick={() => navigate(-1)}>
+        <Button type="submit" variant="primary">{isEditing ? 'Save Changes' : 'Submit'}</Button>
+        <Button variant="secondary" onClick={onCancel}>
           ← Back
         </Button>
       </Form>

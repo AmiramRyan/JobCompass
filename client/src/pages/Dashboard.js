@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import JobCard from '../components/JobCard';
 import FilterBar from '../components/FilterBar';
+import EditJobModal from '../components/EditJobModal';
+import JobForm from '../components/JobForm';
 
 function Dashboard() {
   const [filters, setFilters] = useState({
@@ -13,26 +15,36 @@ function Dashboard() {
   //States
   const [allJobs, setAllJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState(allJobs);
-
+  const [editingJob, setEditingJob] = useState();
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const applicationAddModalR = useRef(null);
+  const applicationListR = useRef(null);
+  //First load
   useEffect(() => {
-    const fetchJobs = async () => {
-      try{
-        const res = await fetch('/jobs');
-        if(!res.ok) throw new Error('Failed to retrieve jobs list')
-        const jobs = await res.json();
-
-        //Normalize
-        const nJobs = jobs.map(job => ({...job, id: job._id}))
-        setAllJobs(nJobs);
-        setFilteredJobs(nJobs);
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
     fetchJobs();
-
   }, []);
+
+  //Scroll controll
+  useEffect (() => {
+    if (showAddModal && applicationAddModalR.current) {
+      applicationAddModalR.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [showAddModal])
+  const fetchJobs = async () => {
+    try{
+      const res = await fetch('/jobs');
+      if(!res.ok) throw new Error('Failed to retrieve jobs list')
+      const jobs = await res.json();
+
+      //Normalize
+      const nJobs = jobs.map(job => ({...job, id: job._id}))
+      setAllJobs(nJobs);
+      setFilteredJobs(nJobs);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
@@ -62,12 +74,55 @@ function Dashboard() {
       setFilteredJobs(oldJobArr => oldJobArr.filter(job => job.id !== jobId)) 
     } catch (e){
       console.error(e);
-      alert('Job failed to delete');
+      alert('Failed to delete job');
     }
   }
 
+  const handelUpdate = async (updatedJob) => {
+    const jobId = updatedJob.id; 
+    try{
+      const res = await fetch(`/jobs/${jobId}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(updatedJob)
+      });
+      if(!res.ok) throw new Error(`Failed to update job: ${jobId}`)
+      fetchJobs();
+    }
+    catch(e){
+      console.error(e);
+      alert('Failed to update Job')
+    }
+  }
+
+  const handleEditClick = (job) => {
+    setEditingJob(job);
+    setShowEditModal(true);
+  }
+
+  const handleCreateJob = async (formData) => {
+  
+  try{
+    const res = await fetch('/jobs', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(formData)
+    });
+    
+    if(!res.ok) throw new Error('Failed to submit');
+    const newJob = await res.json();
+    //Normalize ID
+    newJob.id = newJob._id;
+    console.log('Job Created', newJob);
+    fetchJobs();
+    } catch (err) {
+      console.error(err);
+      alert('Job creation failed');
+    }
+  };
+  
   return (
-    <div className="container mt-5">
+    <div className="container mt-5" ref={applicationListR}>
       <h1 className="mb-4 text-center">🧭 JobCompass Dashboard</h1>
       <div className="row g-4">
         <div className="col-md-3">
@@ -133,7 +188,7 @@ function Dashboard() {
         <div className="row g-4">
           {filteredJobs.map((job) => (
             <div key={job.id} className="col-md-4">
-              <JobCard job={job} onDelete={handelDelete}/>
+              <JobCard job={job} onDelete={handelDelete} onUpdate={handleEditClick}/>
             </div>
           ))}
         </div>
@@ -141,11 +196,33 @@ function Dashboard() {
 
       {/*New Job Btn*/}
       <div className="text-center mt-5">
-        <Link to="/add-job" className="btn btn-outline-primary btn-lg">
-          <i className="bi bi-plus-circle me-2"></i>Add New Application
-        </Link>
+        <button className="btn btn-outline-primary btn-lg"
+          onClick={() => setShowAddModal(true)}>
+          <i className="bi bi-plus-circle me-2"></i>New Application
+        </button>
       </div>
-    </div>
+
+      {/*New Application Modal*/}
+      {showAddModal && (
+        <div ref={applicationAddModalR}>
+          <JobForm
+          onSubmit={handleCreateJob}
+          onCancel={() => setShowAddModal(false)}
+          />
+        </div>
+      )}
+
+      {/*Edit Modal*/}
+      {showEditModal && editingJob && (
+        <EditJobModal job={editingJob} 
+          onClose={() => setShowEditModal(false)}
+          onSave={(updatedJob) => {
+            handelUpdate(updatedJob);
+            setShowEditModal(false);
+          }}
+        />
+      )}
+    </div> 
   );
 }
 

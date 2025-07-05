@@ -12,7 +12,6 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/login" element={<LoginForm />} />
-        <Route path="/add-job" element={<JobForm />} />
       </Routes>
     </Router>
   );
