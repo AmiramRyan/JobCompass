@@ -23,8 +23,22 @@ function Dashboard() {
   const [editingJob, setEditingJob] = useState();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [stats, setStats] = useState({});
   const applicationAddModalR = useRef(null);
   const applicationListR = useRef(null);
+  const userNameRef = useRef('');
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch('/api/jobs/stats', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      setStats(data);
+    } catch (err) {
+      console.error('Failed to fetch stats', err);
+    }
+  };
 
   //First load
   useEffect(() => {
@@ -43,6 +57,20 @@ function Dashboard() {
     }
   }, [showAddModal])
 
+  //Calculate stats
+  useEffect (() => {
+    if (token) fetchStats();
+  }, [])
+
+  useEffect(() => {
+  const fetchUser = async () => {
+    const user = await getUserFromToken();
+    if (user && user.email) {;
+      userNameRef.current = user.email.split('@')[0];
+    }
+  };
+  fetchUser();
+}, []);
   const fetchJobs = async () => {
     try{
       const res = await fetch('/api/jobs',{
@@ -88,6 +116,7 @@ function Dashboard() {
       //Update the full job list and the one currently in view
       setAllJobs(oldJobArr =>  oldJobArr.filter(job => job.id !== jobId))
       setFilteredJobs(oldJobArr => oldJobArr.filter(job => job.id !== jobId)) 
+      fetchStats();
     } catch (e){
       console.error(e);
       alert('Failed to delete job');
@@ -107,6 +136,7 @@ function Dashboard() {
       });
       if(!res.ok) throw new Error(`Failed to update job: ${jobId}`)
       fetchJobs();
+      fetchStats();
     }
     catch(e){
       console.error(e);
@@ -136,7 +166,9 @@ function Dashboard() {
     //Normalize ID
     newJob.id = newJob._id;
     console.log('Job Created', newJob);
+    setShowAddModal(false);
     fetchJobs();
+    fetchStats();
     } catch (err) {
       console.error(err);
       alert('Job creation failed');
@@ -151,7 +183,7 @@ function Dashboard() {
   return (
     <div className="container mt-5" ref={applicationListR}>
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <div>Welcome, {user}</div>
+        <div>Welcome, {userNameRef.current}</div>
         <button className="btn btn-outline-danger" onClick={handleLogout}>
           Logout
         </button>
@@ -163,7 +195,7 @@ function Dashboard() {
             <div className="card-body text-center">
               <i className="bi bi-briefcase-fill display-4 mb-2"></i>
               <h5 className="card-title">Total Applications</h5>
-              <p className="card-text display-6">12</p>
+              <p className="card-text display-6">{stats.total || 0}</p>
             </div>
           </div>
         </div>
@@ -173,7 +205,7 @@ function Dashboard() {
             <div className="card-body text-center">
               <i className="bi bi-calendar-event-fill display-4 mb-2"></i>
               <h5 className="card-title">Interviews</h5>
-              <p className="card-text display-6">4</p>
+              <p className="card-text display-6">{stats.interview || 0}</p>
             </div>
           </div>
         </div>
@@ -183,7 +215,7 @@ function Dashboard() {
             <div className="card-body text-center">
               <i className="bi bi-trophy-fill display-4 mb-2"></i>
               <h5 className="card-title">Offers</h5>
-              <p className="card-text display-6">1</p>
+              <p className="card-text display-6">{stats.offer || 0}</p>
             </div>
           </div>
         </div>
@@ -193,7 +225,7 @@ function Dashboard() {
             <div className="card-body text-center">
               <i className="bi bi-x-octagon-fill display-4 mb-2"></i>
               <h5 className="card-title">Rejected</h5>
-              <p className="card-text display-6">3</p>
+              <p className="card-text display-6">{stats.rejected || 0}</p>
             </div>
           </div>
         </div>
@@ -203,7 +235,7 @@ function Dashboard() {
             <div className="card-body text-center">
               <i className="bi bi-question-circle-fill display-4 mb-2"></i>
               <h5 className="card-title">Ghosted</h5>
-              <p className="card-text display-6">2</p>
+              <p className="card-text display-6">{stats.ghosted || 0}</p>
             </div>
           </div>
         </div>

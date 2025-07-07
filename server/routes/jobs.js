@@ -5,7 +5,27 @@ const authMiddleware = require('../middleware/auth')
 
 router.use(authMiddleware);
 
-router.post('/', async (req, res) => {
+router.get('/stats', authMiddleware, async (req, res) => {
+  try {
+    console.log('Stats route - req.user:', req.user);
+    const jobs = await Job.find({ userId: req.user.id});
+
+    const stats = {
+      total: jobs.length,
+      interview: jobs.filter(j => j.status ==='Interviewing').length,
+      offer: jobs.filter(j => j.status === 'Accepted').length,
+      rejected: jobs.filter(j => j.status === 'Rejected').length,
+      ghosted: jobs.filter(j => j.status === 'Ghosted').length,
+    };
+
+    res.json(stats);
+  } catch (err){
+    console.error(err);
+    res.status(500).json({message: 'Failed to calculate stats' });
+  }
+});
+
+router.post('/', authMiddleware, async (req, res) => {
   const { title, company, status, notes, appliedDate } = req.body;
 
   try{
@@ -14,7 +34,8 @@ router.post('/', async (req, res) => {
       company,
       status,
       notes,
-      appliedDate
+      appliedDate,
+      userId: req.user.id
     });
     await newJob.save();
     res.status(201).json(newJob);
@@ -22,16 +43,6 @@ router.post('/', async (req, res) => {
     console.error('Error creating job:', error);
     res.status(500).json({ message: 'Internal server error' });
   } 
-})
-
-router.get('/', async (req, res) => {
-  try {
-    jobs = await Job.find();
-    res.status(200).json(jobs);
-  } catch (error) {
-    console.error('Error fetching jobs:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
 })
 
 router.get('/:id', async (req, res) => {
@@ -79,6 +90,16 @@ router.delete('/:id', async (req, res) => {
     res.status(200).json({ message: 'Job deleted successfully' });
   } catch (error) {
     console.error('Error deleting job:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+})
+
+router.get('/', async (req, res) => {
+  try {
+    jobs = await Job.find();
+    res.status(200).json(jobs);
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 })

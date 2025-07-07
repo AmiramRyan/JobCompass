@@ -8,10 +8,15 @@ const getUserFromToken = async () => {
     const decoded = jwtDecode(token);
     const userId = decoded.id;
 
-    const response = await fetch(`/api/auth/users/${userId}`);
+    const response = await fetch(`/api/auth/users/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
     if (response.ok) {
       const user = await response.json();
-      return user.email.split('@')[0];
+      return user;
     } else { return null; }
   } catch (err) {
     console.error('Error decoding token or fetching user:', err);
