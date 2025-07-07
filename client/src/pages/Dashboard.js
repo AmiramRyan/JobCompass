@@ -1,11 +1,16 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import JobCard from '../components/JobCard';
 import FilterBar from '../components/FilterBar';
 import EditJobModal from '../components/EditJobModal';
 import JobForm from '../components/JobForm';
+import getUserFromToken from '../utils/getUserFromToken';
+import { useNavigate } from 'react-router-dom';
+
+const token = localStorage.getItem('token');
+const user = getUserFromToken();
 
 function Dashboard() {
+  const navigate = useNavigate();
   const [filters, setFilters] = useState({
     title: '',
     company: '',
@@ -20,9 +25,15 @@ function Dashboard() {
   const [showAddModal, setShowAddModal] = useState(false);
   const applicationAddModalR = useRef(null);
   const applicationListR = useRef(null);
+
   //First load
   useEffect(() => {
-    fetchJobs();
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+    } else {
+      fetchJobs();
+    }
   }, []);
 
   //Scroll controll
@@ -31,9 +42,13 @@ function Dashboard() {
       applicationAddModalR.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [showAddModal])
+
   const fetchJobs = async () => {
     try{
-      const res = await fetch('/jobs');
+      const res = await fetch('/api/jobs',{
+        method: 'GET',
+        headers: {...(token && { Authorization: `Bearer ${token}` })}
+      });
       if(!res.ok) throw new Error('Failed to retrieve jobs list')
       const jobs = await res.json();
 
@@ -65,8 +80,9 @@ function Dashboard() {
 
   const handelDelete = async (jobId) => {
     try{
-      const res = await fetch(`/jobs/${jobId}`, {
+      const res = await fetch(`/api/jobs/${jobId}`, {
         method: 'DELETE',
+        headers: {...(token && { Authorization: `Bearer ${token}` })}
       });
       if(!res.ok) throw new Error(`Failed to delete job: ${jobId}`)
       //Update the full job list and the one currently in view
@@ -81,9 +97,12 @@ function Dashboard() {
   const handelUpdate = async (updatedJob) => {
     const jobId = updatedJob.id; 
     try{
-      const res = await fetch(`/jobs/${jobId}`, {
+      const res = await fetch(`/api/jobs/${jobId}`, {
         method: 'PUT',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
         body: JSON.stringify(updatedJob)
       });
       if(!res.ok) throw new Error(`Failed to update job: ${jobId}`)
@@ -103,9 +122,12 @@ function Dashboard() {
   const handleCreateJob = async (formData) => {
   
   try{
-    const res = await fetch('/jobs', {
+    const res = await fetch('/api/jobs', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` })
+      },
       body: JSON.stringify(formData)
     });
     
@@ -120,9 +142,20 @@ function Dashboard() {
       alert('Job creation failed');
     }
   };
-  
+
+  const handleLogout = () => {
+    localStorage.removeItem(token);
+    window.location.href = '/login';
+  }
+  //Element
   return (
     <div className="container mt-5" ref={applicationListR}>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <div>Welcome, {user}</div>
+        <button className="btn btn-outline-danger" onClick={handleLogout}>
+          Logout
+        </button>
+      </div>
       <h1 className="mb-4 text-center">🧭 JobCompass Dashboard</h1>
       <div className="row g-4">
         <div className="col-md-3">
