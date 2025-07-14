@@ -7,11 +7,11 @@ router.use(authMiddleware);
 
 router.get('/stats', authMiddleware, async (req, res) => {
   try {
-    console.log('Stats route - req.user:', req.user);
     const jobs = await Job.find({ userId: req.user.id});
 
     const stats = {
       total: jobs.length,
+      applied: jobs.filter(j => j.status === "Applied").length,
       interview: jobs.filter(j => j.status ==='Interviewing').length,
       offer: jobs.filter(j => j.status === 'Accepted').length,
       rejected: jobs.filter(j => j.status === 'Rejected').length,
@@ -25,6 +25,7 @@ router.get('/stats', authMiddleware, async (req, res) => {
   }
 });
 
+//Post new job
 router.post('/', authMiddleware, async (req, res) => {
   const { title, company, status, notes, appliedDate } = req.body;
 
@@ -59,6 +60,7 @@ router.get('/:id', async (req, res) => {
   }
 })
 
+//Update Job
 router.put('/:id', async (req, res) => {
   const {id} = req.params;
   const { title, company, status, notes, appliedDate } = req.body;
@@ -94,9 +96,10 @@ router.delete('/:id', async (req, res) => {
   }
 })
 
+//GET All jobs of a user
 router.get('/', async (req, res) => {
   try {
-    jobs = await Job.find();
+    jobs = await Job.find({ userId: req.user.id});
     res.status(200).json(jobs);
   } catch (error) {
     console.error('Error fetching jobs:', error);

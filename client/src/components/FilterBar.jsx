@@ -14,7 +14,8 @@ const FilterBar = ({ onFilterChange }) => {
     const [filters, setFilters] = useState({
         title: '',
         company: '',
-        status: []
+        status: [],
+        date: '',
     });
 
     const handleInputChange  = (e) => {
@@ -46,7 +47,9 @@ const FilterBar = ({ onFilterChange }) => {
       const clearedFilters = {
         title: '',
         company: '',
-        status: []
+        status: [],
+        fromDate: '',
+        toDate: ''
       };
       setFilters(clearedFilters);
       onFilterChange(clearedFilters);
@@ -81,7 +84,7 @@ const FilterBar = ({ onFilterChange }) => {
           </Form.Group>
         </div>
 
-        <div className="col-md-3">
+        <div className="col-md-2">
           <Form.Group controlId="formStatus">
           <Form.Label>Status</Form.Label>
           <Select
@@ -95,8 +98,31 @@ const FilterBar = ({ onFilterChange }) => {
             />
           </Form.Group>
         </div>
-      </div>
 
+        <div className="col-md-2">
+          <Form.Group controlId="formFromDate">
+            <Form.Label>From Date</Form.Label>
+            <Form.Control
+              type="date"
+              name="fromDate"
+              value={filters.fromDate}
+              onChange={handleInputChange}
+            />
+          </Form.Group>
+        </div>
+
+        <div className="col-md-2">
+          <Form.Group controlId="formToDate">
+            <Form.Label>To Date</Form.Label>
+            <Form.Control
+              type="date"
+              name="toDate"
+              value={filters.toDate}
+              onChange={handleInputChange}
+            />
+          </Form.Group>
+        </div>
+      </div>  
       <Button variant="primary" type="submit" className="mt-3 me-2">
         Apply Filters
       </Button>

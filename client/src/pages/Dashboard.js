@@ -71,7 +71,10 @@ function Dashboard() {
   };
   fetchUser();
 }, []);
+
   const fetchJobs = async () => {
+    if(!token) return;
+
     try{
       const res = await fetch('/api/jobs',{
         method: 'GET',
@@ -95,10 +98,13 @@ function Dashboard() {
     const filteredJobs = allJobs.filter(job => {
       const matchesStatus =
         newFilters.status.length === 0 || newFilters.status.includes(job.status);
+      const jobDateString = job.appliedDate.split('T')[0]; 
+      const isWithinDateRange = (newFilters.fromDate === '' || jobDateString >= newFilters.fromDate) && (newFilters.toDate === '' || jobDateString <= newFilters.toDate);
 
       return (
         (newFilters.title === '' || job.title.toLowerCase().includes(newFilters.title.toLowerCase())) &&
         (newFilters.company === '' || job.company.toLowerCase().includes(newFilters.company.toLowerCase())) &&
+        isWithinDateRange  &&
         matchesStatus
       );
     });
@@ -176,7 +182,10 @@ function Dashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem(token);
+    localStorage.removeItem('token');
+    setAllJobs([]);
+    setFilteredJobs([]);
+    setStats({});
     window.location.href = '/login';
   }
   //Element
@@ -190,10 +199,10 @@ function Dashboard() {
       </div>
       <h1 className="mb-4 text-center">🧭 JobCompass Dashboard</h1>
       <div className="row g-4">
-        <div className="col-md-3">
-          <div className="card text-white bg-primary shadow-sm">
+        <div className="col-md-2">
+          <div className="card text-white bg-info shadow-sm">
             <div className="card-body text-center">
-              <i className="bi bi-briefcase-fill display-4 mb-2"></i>
+              <i className="bi bi-briefcase-fill display-6 mb-2"></i>
               <h5 className="card-title">Total Applications</h5>
               <p className="card-text display-6">{stats.total || 0}</p>
             </div>
@@ -201,9 +210,19 @@ function Dashboard() {
         </div>
 
         <div className="col-md-2">
+          <div className="card text-white bg-primary shadow-sm">
+            <div className="card-body text-center">
+              <i className="bi bi-building-check display-6 mb-2"></i>
+              <h5 className="card-title">Applied</h5>
+              <p className="card-text display-6">{stats.applied || 0}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-2">
           <div className="card text-white bg-warning shadow-sm">
             <div className="card-body text-center">
-              <i className="bi bi-calendar-event-fill display-4 mb-2"></i>
+              <i className="bi bi-calendar-event-fill display-6 mb-2"></i>
               <h5 className="card-title">Interviews</h5>
               <p className="card-text display-6">{stats.interview || 0}</p>
             </div>
@@ -213,7 +232,7 @@ function Dashboard() {
         <div className="col-md-2">
           <div className="card text-white bg-success shadow-sm">
             <div className="card-body text-center">
-              <i className="bi bi-trophy-fill display-4 mb-2"></i>
+              <i className="bi bi-trophy-fill display-6 mb-2"></i>
               <h5 className="card-title">Offers</h5>
               <p className="card-text display-6">{stats.offer || 0}</p>
             </div>
@@ -223,7 +242,7 @@ function Dashboard() {
         <div className="col-md-2">
           <div className="card text-white bg-danger shadow-sm">
             <div className="card-body text-center">
-              <i className="bi bi-x-octagon-fill display-4 mb-2"></i>
+              <i className="bi bi-x-octagon-fill display-6 mb-2"></i>
               <h5 className="card-title">Rejected</h5>
               <p className="card-text display-6">{stats.rejected || 0}</p>
             </div>
@@ -233,7 +252,7 @@ function Dashboard() {
         <div className="col-md-2">
           <div className="card text-white bg-secondary shadow-sm">
             <div className="card-body text-center">
-              <i className="bi bi-question-circle-fill display-4 mb-2"></i>
+              <i className="bi bi-question-circle-fill display-6 mb-2"></i>
               <h5 className="card-title">Ghosted</h5>
               <p className="card-text display-6">{stats.ghosted || 0}</p>
             </div>
